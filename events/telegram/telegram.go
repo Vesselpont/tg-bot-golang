@@ -1,11 +1,11 @@
 package telegram
 
 import (
+	"errors"
 	"golang-lod/clients/telegram"
 	"golang-lod/events"
 	"golang-lod/lib/e"
-
-	"golang.org/x/mod/sumdb/storage"
+	"golang-lod/storage"
 )
 
 type Processor struct {
@@ -18,6 +18,9 @@ type Meta struct {
 	ChatID   int
 	Username string
 }
+
+var ErrUnknownEventType = errors.New("unknown event type")
+var ErrUnknownMetaType = errors.New("unknown meta type")
 
 func New(Client *telegram.Client, storage storage.Storage) *Processor {
 	return &Processor{
@@ -45,6 +48,30 @@ func (p *Processor) Fetch(limit int) ([]events.Event, error) {
 
 	return res, nil
 
+}
+
+func (p *Processor) Process(event events.Event) error {
+	switch event.Type {
+	case events.Message:
+		p.processMessage(event)
+	default:
+		return e.Wrap("cant process message", ErrUnknownEventType)
+	}
+}
+
+func (p *Processor) processMessage(event events.Event) error {
+	meta, err := meta(event)
+	if err != nil {
+		return e.Wrap("cant process message", err)
+	}
+}
+
+func meta(event events.Event) (Meta, error) {
+	res, ok := event.Meta.(Meta)
+	if !ok {
+		return Meta{}, e.Wrap("cant get meta", ErrUnknownMetaType)
+	}
+	return res, nil
 }
 
 func event(upd telegram.Update) events.Event {
