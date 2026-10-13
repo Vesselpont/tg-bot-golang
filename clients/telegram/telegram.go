@@ -2,6 +2,7 @@ package telegram
 
 import (
 	"encoding/json"
+	"golang-lod/events"
 	"golang-lod/lib/e"
 	"io"
 	"net/http"
@@ -14,6 +15,11 @@ type Client struct {
 	host     string
 	basePath string
 	client   http.Client
+}
+
+// Fetch implements [events.Fetcher].
+func (c *Client) Fetch(limit int) ([]events.Event, error) {
+	panic("unimplemented")
 }
 
 const (
